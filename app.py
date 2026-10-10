@@ -4,10 +4,12 @@ import numpy as np
 import cv2
 import pandas as pd
 import streamlit as st
+from PIL import Image
 import engine, store
 from monitor import Monitor
 
-st.set_page_config(page_title="Déjà Vu", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
+favicon = Image.open(Path(__file__).parent / "assets" / "favicon.png")
+st.set_page_config(page_title="Déjà Vu", page_icon=favicon, layout="wide", initial_sidebar_state="expanded")
 
 theme_css = Path(__file__).parent.joinpath("assets", "theme.css").read_text(encoding="utf-8")
 st.markdown(f"<style>{theme_css}</style>", unsafe_allow_html=True)
@@ -139,10 +141,12 @@ mon.cfg.update(source=source, settle_secs=settle, motion_thresh=thresh)
 # ---------------- header + live status ----------------
 head, action = st.columns([3, 1.5], vertical_alignment="center")
 with head:
-    st.markdown('<div class="hero"><div class="eyebrow">LOCAL SCENE INTELLIGENCE / SYSTEM 01</div>'
-                '<h1>👁️ Déjà <span>Vu</span></h1>'
-                '<p>A camera with a memory. Track what changed, find where it went, and get an honest “not sure” when the evidence is unclear.</p>'
-                '</div>', unsafe_allow_html=True)
+    title_mark, title_content = st.columns([0.8, 9.2], vertical_alignment="center")
+    title_mark.image("assets/favicon.png", width=64)
+    title_content.markdown('<div class="hero"><div class="eyebrow">LOCAL SCENE INTELLIGENCE / SYSTEM 01</div>'
+                           '<h1>Déjà <span>Vu</span></h1>'
+                           '<p>A camera with a memory. Track what changed, find where it went, and get an honest “not sure” when the evidence is unclear.</p>'
+                           '</div>', unsafe_allow_html=True)
 with action:
     if mon.running:
         if st.button("Stop monitoring", icon="⏹", type="secondary", width="stretch"):

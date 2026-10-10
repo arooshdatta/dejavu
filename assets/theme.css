@@ -277,7 +277,7 @@ h2, h3, h4 {
 
 /* Tabs are the app's primary navigation. Keep labels and keyboard focus clear. */
 [role="tablist"] {
-  gap: var(--dv-space-1);
+  gap: var(--dv-space-4);
   border-bottom: 1px solid var(--dv-border);
 }
 
@@ -286,6 +286,8 @@ button[role="tab"] {
   padding: var(--dv-space-2) var(--dv-space-3);
   border-radius: var(--dv-radius-sm) var(--dv-radius-sm) 0 0;
   color: var(--dv-muted);
+  font-size: 1.125rem;
+  font-weight: 600;
   transition: color var(--dv-transition), background-color var(--dv-transition);
 }
 
@@ -438,7 +440,7 @@ a:focus-visible {
 
   button[role="tab"] {
     padding-inline: var(--dv-space-2);
-    font-size: var(--dv-size-xs);
+    font-size: 1rem;
   }
 }
 
