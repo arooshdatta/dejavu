@@ -10,22 +10,49 @@ st.set_page_config(page_title="Déjà Vu", page_icon="👁️", layout="wide", i
 
 st.markdown("""
 <style>
-#MainMenu, footer {visibility: hidden;}
-.block-container {padding-top: 1.4rem; padding-bottom: 3rem; max-width: 1400px;}
-.hero h1 {margin: 0; font-size: 2.1rem; letter-spacing: -0.5px;}
-.hero p {margin: 2px 0 10px 0; color: #9db4cc; font-size: 1.0rem;}
-.pill {display: inline-block; padding: 5px 14px; border-radius: 999px; font-weight: 600; font-size: 0.9rem;
-       border: 1px solid; margin-right: 10px;}
-.pill.stopped {background:#6A7D9322; color:#b6c3d2; border-color:#6A7D93;}
-.pill.still {background:#0E9E7C22; color:#2FFFD0; border-color:#0E9E7C;}
-.pill.settling {background:#FFB35C22; color:#FFC983; border-color:#FFB35C;}
-.pill.moving {background:#FF7A5C22; color:#FF9C85; border-color:#FF7A5C;}
-.pill.analyzing {background:#25C8F022; color:#7fe0fb; border-color:#25C8F0;}
-.pill.error {background:#E74C3C22; color:#ff8b7e; border-color:#E74C3C;}
-div[data-testid="stMetric"] {background:#11284A; border:1px solid #1d3d68; border-radius:12px; padding:10px 14px;}
-div[data-testid="stVerticalBlockBorderWrapper"] {border-radius: 12px;}
-.step {background:#11284A; border:1px solid #1d3d68; border-radius:12px; padding:14px 16px; height:100%;}
-.step b {color:#25C8F0;}
+:root {
+  --dv-bg:#0b0e10; --dv-surface:#121719; --dv-raised:#191f20; --dv-border:#293233;
+  --dv-text:#eaf0e8; --dv-muted:#9aa7a0; --dv-lime:#c8f36a; --dv-cyan:#65d9e8;
+  --dv-red:#ff8177; --dv-amber:#f2bd69; --dv-radius:10px;
+}
+#MainMenu, footer {visibility:hidden;}
+.stApp {background:radial-gradient(ellipse at 78% -15%, #18231c 0, transparent 37%),var(--dv-bg);}
+.block-container {padding:2rem clamp(1rem,3vw,3rem) 3rem;max-width:1600px;}
+[data-testid="stSidebar"] {background:#0e1213;border-right:1px solid var(--dv-border);}
+[data-testid="stSidebar"] > div:first-child {padding-top:1.2rem;}
+.hero {padding:0 0 1.25rem;border-bottom:1px solid var(--dv-border);margin-bottom:1.4rem;}
+.hero h1 {margin:0;font-size:clamp(2rem,4vw,3.1rem);letter-spacing:-.065em;font-weight:760;line-height:1.05;}
+.hero h1 span {color:var(--dv-lime);}
+.hero p {margin:.55rem 0 0;color:var(--dv-muted);font-size:1rem;max-width:760px;}
+.eyebrow {color:var(--dv-lime);font:650 .72rem/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.13em;text-transform:uppercase;margin-bottom:.6rem;}
+.pill {display:inline-flex;align-items:center;gap:.5rem;padding:.4rem .7rem;border-radius:6px;font-weight:650;font-size:.82rem;border:1px solid;margin-right:.7rem;}
+.pill.stopped {background:#9aa7a010;color:#bbc4bf;border-color:#54605b;}
+.pill.still {background:#c8f36a14;color:var(--dv-lime);border-color:#779342;}
+.pill.settling {background:#f2bd6914;color:var(--dv-amber);border-color:#8e7041;}
+.pill.moving {background:#ff817714;color:var(--dv-red);border-color:#8e514d;}
+.pill.analyzing {background:#65d9e814;color:var(--dv-cyan);border-color:#377e85;}
+.pill.error {background:#ff817714;color:var(--dv-red);border-color:#8e514d;}
+[data-testid="stMetric"] {background:linear-gradient(145deg,#151b1b,#101515);border:1px solid var(--dv-border);border-radius:var(--dv-radius);padding:.8rem 1rem;}
+[data-testid="stMetricLabel"] {color:var(--dv-muted);font-size:.76rem;}
+[data-testid="stMetricValue"] {font:650 1.55rem/1.1 ui-monospace,SFMono-Regular,Consolas,monospace;}
+[data-testid="stVerticalBlockBorderWrapper"] {border-radius:var(--dv-radius);border-color:var(--dv-border);}
+[data-testid="stTabs"] [role="tablist"] {gap:.35rem;border-bottom:1px solid var(--dv-border);}
+[data-testid="stTabs"] button[role="tab"] {border-radius:6px 6px 0 0;color:var(--dv-muted);padding:.65rem .9rem;}
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {color:var(--dv-lime);border-bottom:2px solid var(--dv-lime);}
+button[kind="primary"] {background:var(--dv-lime);color:#11160b;border:1px solid var(--dv-lime);font-weight:700;}
+button[kind="primary"]:hover {background:#d7ff83;border-color:#d7ff83;color:#11160b;}
+button:focus-visible,input:focus-visible,textarea:focus-visible,[role="combobox"]:focus-visible {outline:2px solid var(--dv-cyan)!important;outline-offset:2px!important;}
+[data-testid="stTextInput"] input,[data-testid="stSelectbox"] [role="combobox"],[data-testid="stMultiSelect"] [role="combobox"] {border-radius:7px;}
+.step {background:linear-gradient(145deg,#161d1b,#111616);border:1px solid var(--dv-border);border-radius:var(--dv-radius);padding:1rem 1.1rem;min-height:100px;}
+.step b {color:var(--dv-lime);font:650 .77rem ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.05em;}
+[data-testid="stCaptionContainer"] {color:var(--dv-muted);}
+@media (max-width:700px) {
+  .block-container {padding:1rem .85rem 2rem;}
+  .hero h1 {font-size:2rem;}
+  [data-testid="stTabs"] [role="tablist"] {overflow-x:auto;}
+  [data-testid="stTabs"] button[role="tab"] {padding:.55rem .6rem;font-size:.82rem;}
+}
+@media (prefers-reduced-motion:reduce) {*,*::before,*::after {scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -121,12 +148,22 @@ with st.sidebar:
         remove_after = st.slider("Captures to confirm 'removed'", 1, 4, 2)
         st.caption(f"Embeddings: {engine.embedding_status()}")
     with st.expander("🗄️ Data"):
-        if st.button("Reset all memory", width="stretch"):
-            mon.stop()
-            engine.reset()
-            for k in ("last_answer", "seen_snap"):
-                st.session_state.pop(k, None)
-            st.rerun()
+        if st.button("Reset all memory", width="stretch", type="secondary"):
+            st.session_state["confirm_reset"] = True
+        if st.session_state.get("confirm_reset"):
+            st.warning("This permanently clears tracked objects, events, and snapshot records.")
+            confirm_reset = st.checkbox("I understand this cannot be undone", key="confirm_reset_ack")
+            reset_col, cancel_col = st.columns(2)
+            if reset_col.button("Confirm reset", type="primary", disabled=not confirm_reset, width="stretch"):
+                mon.stop()
+                engine.reset()
+                for k in ("last_answer", "seen_snap", "manual_result", "confirm_reset", "confirm_reset_ack"):
+                    st.session_state.pop(k, None)
+                st.rerun()
+            if cancel_col.button("Cancel", width="stretch"):
+                st.session_state.pop("confirm_reset", None)
+                st.session_state.pop("confirm_reset_ack", None)
+                st.rerun()
     st.caption("🔒 People are detected and blurred before any image is stored.")
 
 engine_cfg = {"model": model_name, "conf_min": conf_min, "allowed": allowed, "remove_after": remove_after,
@@ -138,9 +175,10 @@ if not mon.running and start_clicked:
     st.rerun()
 
 # ---------------- header + live status ----------------
-st.markdown('<div class="hero"><h1>👁️ Déjà Vu</h1>'
-            '<p>A camera with a memory. It notices what changed, answers “where did it go?”, and says '
-            '“not sure” instead of guessing.</p></div>', unsafe_allow_html=True)
+st.markdown('<div class="hero"><div class="eyebrow">LOCAL SCENE INTELLIGENCE / SYSTEM 01</div>'
+            '<h1>👁️ Déjà <span>Vu</span></h1>'
+            '<p>A camera with a memory. Track what changed, find where it went, and get an honest “not sure” when the evidence is unclear.</p>'
+            '</div>', unsafe_allow_html=True)
 
 
 @st.fragment(run_every=1.5)
@@ -235,11 +273,18 @@ with tab_live:
 with tab_obj:
     state = engine.load()
     objs = list(state["objects"].values())
+    search = st.text_input("Search objects", placeholder="Filter by name, label, or zone", key="object_search")
     flt = st.radio("Show", ["all", "present", "moved", "missing", "removed", "unknown"], horizontal=True)
     if flt != "all":
         objs = [o for o in objs if o["status"] == flt]
+    if search.strip():
+        needle = search.casefold().strip()
+        objs = [o for o in objs if needle in o["name"].casefold() or needle in o["label"].casefold() or needle in o["zone"].casefold()]
     if not objs:
-        st.info("No objects to show yet. Start monitoring and let the scene settle to take the baseline.")
+        if state["objects"]:
+            st.info("No objects match these filters. Try another status or search term.")
+        else:
+            st.info("No objects to show yet. Start monitoring and let the scene settle to take the baseline.")
     cols = st.columns(4)
     for i, o in enumerate(objs):
         with cols[i % 4]:
