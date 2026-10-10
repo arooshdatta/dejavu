@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+.pytest_cache/
+
+# App data (created at runtime: database, snapshots, crops, evidence)
+data/
+
+# Model weights (downloaded automatically on first run)
+*.pt
+*.onnx
+*.pth
+runs/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Test / demo media
+*.avi
+*.mp4
+sim.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
