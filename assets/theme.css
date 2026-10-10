@@ -1,0 +1,345 @@
+:root {
+  color-scheme: dark;
+
+  /* Color */
+  --dv-bg: #0b0e10;
+  --dv-sidebar: #101516;
+  --dv-surface: #151a1b;
+  --dv-raised: #1b2223;
+  --dv-border: #303a3b;
+  --dv-border-strong: #465353;
+  --dv-text: #edf2ed;
+  --dv-muted: #a5b1ac;
+  --dv-lime: #c8f36a;
+  --dv-cyan: #71dce8;
+  --dv-success: #81d6a0;
+  --dv-warning: #f2c16e;
+  --dv-error: #ff8980;
+
+  /* Type */
+  --dv-font-body: "Segoe UI", system-ui, sans-serif;
+  --dv-font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  --dv-size-xs: 0.75rem;
+  --dv-size-sm: 0.875rem;
+  --dv-size-body: 1rem;
+  --dv-size-title: clamp(2rem, 4vw, 3.1rem);
+
+  /* Layout */
+  --dv-space-1: 0.25rem;
+  --dv-space-2: 0.5rem;
+  --dv-space-3: 0.75rem;
+  --dv-space-4: 1rem;
+  --dv-space-6: 1.5rem;
+  --dv-space-8: 2rem;
+  --dv-content-width: 1600px;
+  --dv-radius-sm: 6px;
+  --dv-radius: 10px;
+  --dv-shadow-panel: 0 8px 24px rgb(0 0 0 / 16%);
+  --dv-focus: 0 0 0 2px var(--dv-bg), 0 0 0 4px var(--dv-cyan);
+  --dv-transition: 140ms ease;
+}
+
+html, body, .stApp {
+  font-family: var(--dv-font-body);
+}
+
+.stApp {
+  color: var(--dv-text);
+  background: var(--dv-bg);
+}
+
+.block-container {
+  width: 100%;
+  max-width: var(--dv-content-width);
+  padding: 3rem clamp(1rem, 3vw, 3rem) 3rem;
+}
+
+/* Sidebar is the settings rail; workflow navigation remains in Streamlit tabs. */
+section[data-testid="stSidebar"] {
+  background: var(--dv-sidebar);
+  border-right: 1px solid var(--dv-border);
+}
+
+section[data-testid="stSidebar"] > div {
+  padding-top: var(--dv-space-6);
+}
+
+section[data-testid="stSidebar"] [data-testid="stExpander"] {
+  border-color: var(--dv-border);
+  border-radius: var(--dv-radius-sm);
+  background: var(--dv-surface);
+}
+
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary {
+  min-height: 2.8rem;
+  color: var(--dv-text);
+  transition: background-color var(--dv-transition), color var(--dv-transition);
+}
+
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {
+  color: var(--dv-lime);
+  background: var(--dv-raised);
+}
+
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
+  margin-bottom: var(--dv-space-1);
+  letter-spacing: -0.035em;
+}
+
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
+  color: var(--dv-muted);
+}
+
+.hero {
+  margin-bottom: var(--dv-space-6);
+  padding-bottom: var(--dv-space-6);
+  border-bottom: 1px solid var(--dv-border);
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: var(--dv-size-title);
+  font-weight: 750;
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+}
+
+.hero h1 span {
+  color: var(--dv-lime);
+}
+
+.hero p {
+  max-width: 48rem;
+  margin: var(--dv-space-2) 0 0;
+  color: var(--dv-muted);
+  font-size: var(--dv-size-body);
+  line-height: 1.55;
+}
+
+.section-heading {
+  margin: 0 0 var(--dv-space-6);
+  padding-bottom: var(--dv-space-4);
+  border-bottom: 1px solid var(--dv-border);
+}
+
+.section-heading .eyebrow {
+  margin-bottom: var(--dv-space-1);
+  color: var(--dv-cyan);
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+  line-height: 1.2;
+}
+
+.section-heading p {
+  margin: var(--dv-space-2) 0 0;
+  color: var(--dv-muted);
+  font-size: var(--dv-size-sm);
+  line-height: 1.5;
+}
+
+.status-meta,
+.record-count {
+  color: var(--dv-muted);
+  font-family: var(--dv-font-mono);
+  font-size: var(--dv-size-xs);
+  letter-spacing: 0.02em;
+}
+
+.record-count {
+  margin-left: var(--dv-space-2);
+  font-weight: 400;
+}
+
+.eyebrow,
+.step b {
+  color: var(--dv-lime);
+  font-family: var(--dv-font-mono);
+  font-size: var(--dv-size-xs);
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: var(--dv-space-3);
+  line-height: 1.4;
+}
+
+h2, h3, h4 {
+  color: var(--dv-text);
+  letter-spacing: -0.025em;
+}
+
+/* Tabs are the app's primary navigation. Keep labels and keyboard focus clear. */
+[role="tablist"] {
+  gap: var(--dv-space-1);
+  border-bottom: 1px solid var(--dv-border);
+}
+
+button[role="tab"] {
+  min-height: 2.75rem;
+  padding: var(--dv-space-2) var(--dv-space-3);
+  border-radius: var(--dv-radius-sm) var(--dv-radius-sm) 0 0;
+  color: var(--dv-muted);
+  transition: color var(--dv-transition), background-color var(--dv-transition);
+}
+
+button[role="tab"]:hover {
+  color: var(--dv-text);
+  background: var(--dv-raised);
+}
+
+button[role="tab"][aria-selected="true"] {
+  color: var(--dv-lime);
+  border-bottom: 2px solid var(--dv-lime);
+}
+
+/* Metrics, evidence cards, and setup steps share one quiet panel treatment. */
+div[data-testid="stMetric"],
+div[data-testid="stVerticalBlockBorderWrapper"] {
+  border: 1px solid var(--dv-border);
+  border-radius: var(--dv-radius);
+  background: var(--dv-surface);
+}
+
+div[data-testid="stMetric"] {
+  padding: var(--dv-space-4);
+  box-shadow: var(--dv-shadow-panel);
+}
+
+div[data-testid="stMetricLabel"] {
+  color: var(--dv-muted);
+  font-size: var(--dv-size-sm);
+}
+
+div[data-testid="stMetricValue"] {
+  color: var(--dv-text);
+  font-family: var(--dv-font-mono);
+  font-size: 1.5rem;
+  font-weight: 650;
+}
+
+.step {
+  min-height: 6rem;
+  padding: var(--dv-space-4);
+  border: 1px solid var(--dv-border);
+  border-radius: var(--dv-radius);
+  background: var(--dv-surface);
+}
+
+.step b {
+  letter-spacing: 0.04em;
+}
+
+/* Existing state badge classes also communicate monitoring status. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dv-space-2);
+  margin-right: var(--dv-space-3);
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--dv-border-strong);
+  border-radius: var(--dv-radius-sm);
+  font-size: var(--dv-size-sm);
+  font-weight: 650;
+}
+
+.pill.stopped { color: var(--dv-muted); }
+.pill.still { color: var(--dv-success); border-color: var(--dv-success); background: #81d6a014; }
+.pill.settling { color: var(--dv-warning); border-color: var(--dv-warning); background: #f2c16e14; }
+.pill.moving, .pill.error { color: var(--dv-error); border-color: var(--dv-error); background: #ff898014; }
+.pill.analyzing { color: var(--dv-cyan); border-color: var(--dv-cyan); background: #71dce814; }
+
+button[kind="primary"] {
+  border: 1px solid var(--dv-lime);
+  background: var(--dv-lime);
+  color: #13180c;
+  font-weight: 700;
+  transition: background-color var(--dv-transition), border-color var(--dv-transition);
+}
+
+button[kind="primary"]:hover:not(:disabled) {
+  border-color: #d8ff8a;
+  background: #d8ff8a;
+  color: #13180c;
+}
+
+button:disabled {
+  border-color: var(--dv-border);
+  background: var(--dv-raised);
+  color: var(--dv-muted);
+  opacity: 0.7;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[role="combobox"]:focus-visible,
+[role="radio"]:focus-visible,
+[role="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: var(--dv-focus);
+}
+
+input, textarea, [role="combobox"] {
+  border-radius: var(--dv-radius-sm);
+}
+
+div[data-testid="stFileUploader"],
+div[data-testid="stCameraInput"] {
+  border: 1px dashed var(--dv-border-strong);
+  border-radius: var(--dv-radius);
+  background: var(--dv-surface);
+}
+
+div[data-testid="stDataFrame"] {
+  border: 1px solid var(--dv-border);
+  border-radius: var(--dv-radius-sm);
+  overflow: hidden;
+}
+
+hr {
+  border-color: var(--dv-border);
+}
+
+div[data-testid="stCaptionContainer"] {
+  color: var(--dv-muted);
+}
+
+a:focus-visible {
+  outline: none;
+  border-radius: 3px;
+  box-shadow: var(--dv-focus);
+}
+
+@media (max-width: 700px) {
+  .block-container {
+    padding: 1.75rem 0.85rem var(--dv-space-8);
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  [role="tablist"] {
+    overflow-x: auto;
+  }
+
+  button[role="tab"] {
+    padding-inline: var(--dv-space-2);
+    font-size: var(--dv-size-xs);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto;
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}
