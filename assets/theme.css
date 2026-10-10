@@ -2,19 +2,29 @@
   color-scheme: dark;
 
   /* Color */
-  --dv-bg: #0b0e10;
-  --dv-sidebar: #101516;
-  --dv-surface: #151a1b;
-  --dv-raised: #1b2223;
-  --dv-border: #303a3b;
-  --dv-border-strong: #465353;
-  --dv-text: #edf2ed;
-  --dv-muted: #a5b1ac;
-  --dv-lime: #c8f36a;
-  --dv-cyan: #71dce8;
-  --dv-success: #81d6a0;
-  --dv-warning: #f2c16e;
+  --dv-bg: #0b1418;
+  --dv-ink: #0b1418;
+  --dv-sidebar: #121e24;
+  --dv-surface: #121e24;
+  --dv-raised: #1b2b33;
+  --dv-teal: #2eccd5;
+  --dv-border: color-mix(in srgb, var(--dv-teal) 28%, transparent);
+  --dv-border-strong: color-mix(in srgb, var(--dv-teal) 55%, transparent);
+  --dv-text: #ffffff;
+  --dv-muted: #b6c5ca;
+  --dv-primary: #22c0e7;
+  --dv-primary-hover: var(--dv-teal);
+  --dv-mint: #5ff9bb;
+  --dv-mint-hover: var(--dv-teal);
+  --dv-orange: #ffb158;
+  --dv-success: var(--dv-mint);
+  --dv-success-tint: color-mix(in srgb, var(--dv-success) 8%, transparent);
+  --dv-warning: var(--dv-orange);
+  --dv-warning-tint: color-mix(in srgb, var(--dv-warning) 8%, transparent);
   --dv-error: #ff8980;
+  --dv-error-tint: color-mix(in srgb, var(--dv-error) 8%, transparent);
+  --dv-cyan: var(--dv-primary);
+  --dv-cyan-tint: color-mix(in srgb, var(--dv-cyan) 8%, transparent);
 
   /* Type */
   --dv-font-body: "Segoe UI", system-ui, sans-serif;
@@ -64,6 +74,10 @@ section[data-testid="stSidebar"] > div {
   padding-top: var(--dv-space-6);
 }
 
+section[data-testid="stSidebar"] [data-testid="stImage"] {
+  margin: 0.35rem 0 0.75rem;
+}
+
 section[data-testid="stSidebar"] [data-testid="stExpander"] {
   border-color: var(--dv-border);
   border-radius: var(--dv-radius-sm);
@@ -77,7 +91,7 @@ section[data-testid="stSidebar"] [data-testid="stExpander"] summary {
 }
 
 section[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {
-  color: var(--dv-lime);
+  color: var(--dv-mint);
   background: var(--dv-raised);
 }
 
@@ -89,6 +103,92 @@ section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
   color: var(--dv-muted);
+}
+
+/* Selected multiselect values use the brand mint with a high-contrast ink label. */
+span[data-baseweb="tag"],
+[data-baseweb="tag"] {
+  border: 1px solid var(--dv-mint);
+  border-radius: var(--dv-radius-sm);
+  background-color: var(--dv-mint) !important;
+  color: var(--dv-ink) !important;
+}
+
+[data-baseweb="tag"] span {
+  color: var(--dv-ink) !important;
+  -webkit-text-fill-color: var(--dv-ink) !important;
+  font-weight: 600 !important;
+}
+
+[data-baseweb="tag"] * {
+  color: var(--dv-ink) !important;
+  -webkit-text-fill-color: var(--dv-ink) !important;
+}
+
+[data-baseweb="tag"] button,
+[data-baseweb="tag"] [role="button"] {
+  color: var(--dv-ink) !important;
+  background-color: transparent !important;
+}
+
+[data-baseweb="tag"] svg {
+  color: var(--dv-ink) !important;
+  fill: var(--dv-ink) !important;
+}
+
+[data-baseweb="tag"] svg path {
+  fill: var(--dv-ink) !important;
+  stroke: var(--dv-ink) !important;
+}
+
+[data-baseweb="tag"] button:hover,
+[data-baseweb="tag"] [role="button"]:hover {
+  background-color: var(--dv-mint-hover) !important;
+}
+
+/* Current Streamlit multiselect renders selected values with data-tag. */
+[data-testid="stMultiSelectTagsContainer"] [data-tag] {
+  border: 1px solid var(--dv-mint) !important;
+  border-radius: var(--dv-radius-sm) !important;
+  background-color: var(--dv-mint) !important;
+  color: var(--dv-ink) !important;
+}
+
+[data-testid="stMultiSelectTagsContainer"] [data-tag] *,
+[data-testid="stMultiSelectTagsContainer"] [data-tag] [aria-label^="Remove"] {
+  color: var(--dv-ink) !important;
+  fill: var(--dv-ink) !important;
+  font-weight: 600 !important;
+  -webkit-text-fill-color: var(--dv-ink) !important;
+}
+
+[data-testid="stMultiSelectTagsContainer"] [data-tag] [aria-label^="Remove"]:hover {
+  background-color: var(--dv-mint-hover) !important;
+}
+
+[data-testid="stMultiSelect"] [aria-label="Clear all"],
+[data-testid="stMultiSelect"] [aria-label="Open"] {
+  color: var(--dv-text) !important;
+  background: transparent !important;
+}
+
+[data-testid="stMultiSelect"] [aria-label="Clear all"] svg,
+[data-testid="stMultiSelect"] [aria-label="Open"] svg {
+  color: var(--dv-primary) !important;
+  fill: var(--dv-primary) !important;
+}
+
+/* Keep option menus and placeholders legible against Streamlit's dark surfaces. */
+[role="listbox"],
+[role="option"] {
+  color: var(--dv-text);
+  background-color: var(--dv-raised);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--dv-muted);
+  opacity: 1;
 }
 
 .hero {
@@ -106,7 +206,7 @@ section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
 }
 
 .hero h1 span {
-  color: var(--dv-lime);
+  color: var(--dv-mint);
 }
 
 .hero p {
@@ -156,7 +256,7 @@ section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
 
 .eyebrow,
 .step b {
-  color: var(--dv-lime);
+  color: var(--dv-mint);
   font-family: var(--dv-font-mono);
   font-size: var(--dv-size-xs);
   font-weight: 650;
@@ -195,8 +295,8 @@ button[role="tab"]:hover {
 }
 
 button[role="tab"][aria-selected="true"] {
-  color: var(--dv-lime);
-  border-bottom: 2px solid var(--dv-lime);
+  color: var(--dv-mint);
+  border-bottom: 2px solid var(--dv-mint);
 }
 
 /* Metrics, evidence cards, and setup steps share one quiet panel treatment. */
@@ -250,23 +350,27 @@ div[data-testid="stMetricValue"] {
 }
 
 .pill.stopped { color: var(--dv-muted); }
-.pill.still { color: var(--dv-success); border-color: var(--dv-success); background: #81d6a014; }
-.pill.settling { color: var(--dv-warning); border-color: var(--dv-warning); background: #f2c16e14; }
-.pill.moving, .pill.error { color: var(--dv-error); border-color: var(--dv-error); background: #ff898014; }
-.pill.analyzing { color: var(--dv-cyan); border-color: var(--dv-cyan); background: #71dce814; }
+.pill.still { color: var(--dv-success); border-color: var(--dv-success); background: var(--dv-success-tint); }
+.pill.settling { color: var(--dv-warning); border-color: var(--dv-warning); background: var(--dv-warning-tint); }
+.pill.moving, .pill.error { color: var(--dv-error); border-color: var(--dv-error); background: var(--dv-error-tint); }
+.pill.analyzing { color: var(--dv-cyan); border-color: var(--dv-cyan); background: var(--dv-cyan-tint); }
 
 button[kind="primary"] {
-  border: 1px solid var(--dv-lime);
-  background: var(--dv-lime);
-  color: #13180c;
+  border: 1px solid var(--dv-primary);
+  background: var(--dv-primary);
+  color: var(--dv-ink);
   font-weight: 700;
   transition: background-color var(--dv-transition), border-color var(--dv-transition);
 }
 
+[data-testid="stSliderThumbValue"] {
+  color: var(--dv-text) !important;
+}
+
 button[kind="primary"]:hover:not(:disabled) {
-  border-color: #d8ff8a;
-  background: #d8ff8a;
-  color: #13180c;
+  border-color: var(--dv-primary-hover);
+  background: var(--dv-primary-hover);
+  color: var(--dv-ink);
 }
 
 button:disabled {
@@ -287,6 +391,8 @@ textarea:focus-visible,
 }
 
 input, textarea, [role="combobox"] {
+  color: var(--dv-text);
+  background-color: var(--dv-raised);
   border-radius: var(--dv-radius-sm);
 }
 

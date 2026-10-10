@@ -84,9 +84,7 @@ def section_heading(index, title, description):
 
 # ---------------- sidebar ----------------
 with st.sidebar:
-    if os.path.exists("assets/logo.png"):
-        st.image("assets/logo.png", width=90)
-    st.markdown("### Déjà Vu")
+    st.image("assets/logo.png", width=180)
     st.caption("A camera that remembers what changed.")
     if st.session_state.pop("reset_notice", None):
         st.success("Scene memory cleared.")
