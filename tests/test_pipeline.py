@@ -94,11 +94,15 @@ def test_move_is_reported_with_zones():
     assert "moved from center to top-right" in r["events"][0]["text"]
 
 
-def test_unlisted_labels_are_ignored_and_known_confusion_is_aliased():
-    noisy = BASE[:1] + [(4, (400, 40, 460, 90)), (5, (150, 300, 230, 340))]   # hot dog + skateboard
-    engine.process(scene(noisy), CFG)
+def test_unlisted_labels_are_ignored_and_skateboard_is_not_aliased():
+    noisy = BASE[:1] + [(4, (400, 40, 460, 90)), (5, (150, 300, 230, 340))]
+
+    cfg = {**CFG, "allowed": ["bottle", "skateboard"]}
+    engine.process(scene(noisy), cfg)
+
     labels = sorted(o["label"] for o in store.load_state()["objects"].values())
-    assert labels == ["bottle", "cell phone"]                                  # hot dog dropped, skateboard aliased
+
+    assert labels == ["bottle", "skateboard"]
 
 
 def test_person_in_front_gives_unknown_not_removed():

@@ -99,11 +99,59 @@ with st.sidebar:
         thresh = st.slider("Motion threshold", 1.0, 12.0, 3.0, 0.5,
                            help="Higher = needs bigger movement to count as motion. Watch the motion bar on the Live tab.")
     with st.expander("🎯 Detection"):
-        st.caption("Tune the detector and the object classes kept in scene memory.")
-        model_name = st.selectbox("Model", ["yolov8s.pt", "yolov8m.pt", "yolov8n.pt"],
-                                  help="Bigger = more accurate but slower.")
-        conf_min = st.slider("Detection confidence", 0.25, 0.80, 0.45, 0.05)
-        allowed = st.multiselect("Objects to track", engine.ALLOWED, default=engine.ALLOWED)
+        st.caption("Choose the detector and the breadth of object categories stored in scene memory.")
+        model_choices = ["yolov8s.pt", "yolov8m.pt", "yolov8n.pt", "yolov8s-worldv2.pt"]
+        model_labels = {
+            "yolov8s.pt": "YOLOv8s · standard",
+            "yolov8m.pt": "YOLOv8m · larger / slower",
+            "yolov8n.pt": "YOLOv8n · faster / lighter",
+            "yolov8s-worldv2.pt": "YOLO-World S · open vocabulary",
+        }
+        model_name = st.selectbox(
+            "Model", model_choices, format_func=lambda value: model_labels[value],
+            help="YOLOv8 uses its standard trained classes. YOLO-World also accepts editable text labels.",
+        )
+        is_world_model = "world" in model_name.lower()
+        if is_world_model:
+            conf_min = st.slider(
+                "Detection confidence", 0.05, 0.80, 0.15, 0.05, key="world_detection_confidence",
+                help="Open-vocabulary scores can be lower. Start low for exploration, then raise to reduce false positives.",
+            )
+        else:
+            conf_min = st.slider(
+                "Detection confidence", 0.25, 0.80, 0.45, 0.05, key="standard_detection_confidence",
+                help="Higher values reduce weak predictions, but may miss small objects.",
+            )
+        track_all_classes = st.toggle(
+            "Track all standard COCO categories", value=True, key="track_all_standard_classes",
+            help="When off, choose a smaller subset below. The standard detector still only knows its trained classes.",
+        )
+        if track_all_classes:
+            allowed = list(engine.ALLOWED)
+        else:
+            allowed = st.multiselect(
+                "Standard object categories", engine.ALLOWED, default=engine.DEFAULT_ALLOWED,
+                key="selected_standard_classes",
+            )
+        if is_world_model:
+            st.caption(
+                "YOLO-World uses the standard categories above plus the extra labels below. "
+                "Add any comma-separated object names you want it to consider."
+            )
+            world_extra_raw = st.text_area(
+                "Additional object labels", value=", ".join(engine.WORLD_EXTRA_DEFAULTS),
+                height=100, key="world_extra_labels",
+                help="These are examples, not a limit. Add or remove labels freely; person detection remains enabled for privacy blur.",
+            )
+            world_extra_prompts = list(dict.fromkeys(
+                part.strip() for part in world_extra_raw.replace("\n", ",").split(",") if part.strip()
+            ))
+            st.warning(
+                "Experimental: broad prompts increase coverage but can confuse visually similar objects. "
+                "Keep YOLOv8 available as a fallback."
+            )
+        else:
+            world_extra_prompts = []
     with st.expander("🧬 Identity matching"):
         st.caption("These settings determine how sightings are matched to known objects.")
         use_emb = st.toggle("Use AI appearance embeddings", value=True,
@@ -133,7 +181,8 @@ with st.sidebar:
                 st.rerun()
     st.caption("🔒 People are detected and blurred before any image is stored.")
 
-engine_cfg = {"model": model_name, "conf_min": conf_min, "allowed": allowed, "remove_after": remove_after,
+engine_cfg = {"model": model_name, "conf_min": conf_min, "allowed": allowed,
+              "world_extra_prompts": world_extra_prompts, "remove_after": remove_after,
               "match_max_cost": strict, "use_embeddings": use_emb}
 mon.engine_cfg = engine_cfg
 mon.cfg.update(source=source, settle_secs=settle, motion_thresh=thresh)
@@ -258,6 +307,83 @@ with tab_live:
             st.image(mr["image"], width="stretch")
             for e in mr["events"]:
                 show_event(e)
+
+    with st.expander("🧪 YOLO-World photo test (does not change memory)"):
+        st.caption(
+            "Compare open-vocabulary labels on one uploaded photo. This test does not "
+            "create snapshots, events, or objects and does not modify the SQLite database."
+        )
+        prompt_options = [
+            "eyeglasses", "key", "pen", "pencil", "phone charger", "wireless earbuds",
+            "headphones", "notebook", "stapler", "wallet", "cell phone", "bottle", "cup",
+            "book", "chair", "scissors", "laptop", "keyboard", "computer mouse",
+            "remote control", "backpack", "handbag", "person",
+        ]
+        prompts = st.multiselect(
+            "Ask YOLO-World to look for", prompt_options,
+            default=["eyeglasses", "key", "cell phone", "bottle", "chair", "scissors"],
+            key="world_photo_test_prompts",
+            help="Custom prompts let us test objects that standard COCO YOLOv8 does not have as classes.",
+        )
+        world_conf = st.slider(
+            "YOLO-World test confidence", 0.05, 0.80, 0.20, 0.05,
+            key="world_photo_test_conf",
+        )
+        world_photo = st.file_uploader(
+            "Upload a test photo", type=["jpg", "jpeg", "png"], key="world_photo_test_upload"
+        )
+        run_world_test = st.button(
+            "Run YOLO-World test", type="primary", key="run_world_photo_test"
+        )
+        if run_world_test:
+            if world_photo is None:
+                st.warning("Upload a photo first.")
+            elif not prompts:
+                st.warning("Select at least one candidate label.")
+            else:
+                test_img = cv2.imdecode(
+                    np.frombuffer(world_photo.getvalue(), np.uint8), cv2.IMREAD_COLOR
+                )
+                if test_img is None:
+                    st.error("Could not read that image. Please try a JPG or PNG file.")
+                else:
+                    try:
+                        with st.spinner(
+                            "Loading YOLO-World and analyzing the photo. The first run can take several minutes."
+                        ):
+                            test_dets = engine.detect_world(test_img, prompts, world_conf)
+                        if not test_dets:
+                            st.info(
+                                "No matching objects were detected. Try a lower confidence "
+                                "or different prompts; this is not proof the objects are absent."
+                            )
+                        else:
+                            drawn = [
+                                {
+                                    "box": d["box"],
+                                    "name": f'{d["label"]} · {d["conf"]:.0%}',
+                                    "status": "present",
+                                }
+                                for d in test_dets
+                            ]
+                            st.image(engine.annotate(test_img, drawn), use_container_width=True)
+                            st.dataframe(
+                                pd.DataFrame([
+                                    {
+                                        "label": d["label"],
+                                        "confidence": round(d["conf"], 3),
+                                        "box (normalized)": [round(v, 3) for v in d["box"]],
+                                    }
+                                    for d in test_dets
+                                ]),
+                                use_container_width=True,
+                                hide_index=True,
+                            )
+                    except Exception as exc:
+                        st.error(f"YOLO-World test failed: {type(exc).__name__}: {exc}")
+                        st.caption(
+                            "The regular YOLOv8 detector and saved object memory were not changed by this test."
+                        )
 
 # ---------------- OBJECTS ----------------
 with tab_obj:

@@ -16,10 +16,160 @@ for _d in (SNAPS, CROPS, EVID):
 MIN_BLUR, MIN_LIGHT, MAX_LIGHT = 25.0, 40, 225
 IGNORE = {"person"}
 MIN_AREA, MAX_AREA = 0.003, 0.5
-ALLOWED = ["bottle", "cup", "bowl", "book", "cell phone", "scissors", "earbuds", "remote",
-           "keyboard", "laptop", "backpack", "handbag", "umbrella", "clock", "vase",
-           "toothbrush", "apple", "banana", "orange"]
-ALIASES = {"skateboard": "cell phone"}      # known detector confusion on the demo phone; edit/delete freely
+# Standard non-person COCO classes understood by the pretrained YOLOv8 weights.
+# Adding labels here exposes classes; it does not retrain the model.
+ALLOWED = [
+    'airplane',
+    'apple',
+    'backpack',
+    'banana',
+    'baseball bat',
+    'baseball glove',
+    'bear',
+    'bed',
+    'bench',
+    'bicycle',
+    'bird',
+    'boat',
+    'book',
+    'bottle',
+    'bowl',
+    'broccoli',
+    'bus',
+    'cake',
+    'car',
+    'carrot',
+    'cat',
+    'chair',
+    'clock',
+    'cell phone',
+    'couch',
+    'cow',
+    'cup',
+    'dining table',
+    'dog',
+    'donut',
+    'elephant',
+    'fire hydrant',
+    'fork',
+    'frisbee',
+    'giraffe',
+    'hair drier',
+    'handbag',
+    'horse',
+    'hot dog',
+    'keyboard',
+    'kite',
+    'knife',
+    'laptop',
+    'microwave',
+    'motorcycle',
+    'mouse',
+    'orange',
+    'oven',
+    'parking meter',
+    'pizza',
+    'potted plant',
+    'remote',
+    'refrigerator',
+    'sandwich',
+    'scissors',
+    'sheep',
+    'sink',
+    'skateboard',
+    'skis',
+    'snowboard',
+    'spoon',
+    'sports ball',
+    'stop sign',
+    'suitcase',
+    'surfboard',
+    'teddy bear',
+    'tennis racket',
+    'tie',
+    'toaster',
+    'toilet',
+    'toothbrush',
+    'traffic light',
+    'train',
+    'truck',
+    'tv',
+    'umbrella',
+    'vase',
+    'wine glass',
+    'zebra',
+]
+
+# Used only when a user chooses to track a subset instead of all standard classes.
+DEFAULT_ALLOWED = [
+    'apple',
+    'backpack',
+    'banana',
+    'bed',
+    'book',
+    'bottle',
+    'bowl',
+    'broccoli',
+    'cake',
+    'carrot',
+    'cell phone',
+    'chair',
+    'clock',
+    'couch',
+    'cup',
+    'dining table',
+    'donut',
+    'fork',
+    'handbag',
+    'keyboard',
+    'knife',
+    'laptop',
+    'microwave',
+    'mouse',
+    'orange',
+    'oven',
+    'pizza',
+    'potted plant',
+    'remote',
+    'refrigerator',
+    'sandwich',
+    'scissors',
+    'sink',
+    'spoon',
+    'suitcase',
+    'toaster',
+    'toothbrush',
+    'tv',
+    'umbrella',
+    'vase',
+    'wine glass',
+]
+
+# Open-vocabulary labels outside the standard COCO taxonomy. Users can edit/add
+# any comma-separated labels in the Detection sidebar when YOLO-World is selected.
+WORLD_EXTRA_DEFAULTS = [
+    'eyeglasses',
+    'key',
+    'keychain',
+    'pen',
+    'pencil',
+    'notebook',
+    'stapler',
+    'ruler',
+    'marker',
+    'phone charger',
+    'charger',
+    'wireless earbuds',
+    'headphones',
+    'wallet',
+    'watch',
+    'USB drive',
+    'power bank',
+    'calculator',
+    'tape dispenser',
+]
+ALIASES = {}  # Preserve model predictions; never silently rewrite class labels.
+
 ZONES = [["top-left", "top-center", "top-right"],
          ["middle-left", "center", "middle-right"],
          ["bottom-left", "bottom-center", "bottom-right"]]
@@ -32,6 +182,7 @@ DEFAULT_CFG = {"model": "yolov8s.pt", "conf_min": 0.45, "allowed": list(ALLOWED)
 # ---------------- models (loaded lazily, shared) ----------------
 _INFER_LOCK = threading.Lock()
 _DET = {}
+_DETECTOR_PROMPT_KEYS = {}
 _OVERRIDE = {"detector": None, "embedder": None}      # used only by tests
 EMB = {"obj": None, "error": None, "tried": False}
 
@@ -51,13 +202,64 @@ class Embedder:
         out = self.torch.nn.functional.normalize(out, dim=-1)
         return out.cpu().numpy()
 
-def get_detector(name):
+def get_detector(name, prompts=None):
+    """Load a standard YOLO detector or a YOLO-World detector, caching both.
+
+    YOLO-World requires text prompts. The privacy class ``person`` is always
+    included so the existing blur-before-storage path remains active.
+    """
     if _OVERRIDE["detector"] is not None:
         return _OVERRIDE["detector"]
+    is_world = "world" in str(name).lower()
     if name not in _DET:
-        from ultralytics import YOLO
-        _DET[name] = YOLO(name)
-    return _DET[name]
+        if is_world:
+            from ultralytics import YOLOWorld
+            _DET[name] = YOLOWorld(name)
+        else:
+            from ultralytics import YOLO
+            _DET[name] = YOLO(name)
+    model = _DET[name]
+    if is_world:
+        labels = prompts if prompts is not None else (list(ALLOWED) + list(WORLD_EXTRA_DEFAULTS))
+        labels = list(dict.fromkeys(str(x).strip() for x in labels if str(x).strip()))
+        if "person" not in labels:
+            labels.append("person")
+        prompt_key = tuple(labels)
+        if _DETECTOR_PROMPT_KEYS.get(name) != prompt_key:
+            model.set_classes(labels)
+            _DETECTOR_PROMPT_KEYS[name] = prompt_key
+    return model
+
+# ---------------- optional YOLO-World photo test (does not write memory) ----------------
+def detect_world(img, labels, conf_min=0.20, model_name="yolov8s-worldv2.pt"):
+    """Run open-vocabulary detection for a one-off image, without using the ledger."""
+    prompts = list(dict.fromkeys(str(x).strip() for x in labels if str(x).strip()))
+    if not prompts:
+        return []
+    if "person" not in prompts:
+        prompts.append("person")
+    with _INFER_LOCK:
+        model = get_detector(model_name, prompts=prompts)
+        result = model.predict(
+            source=img, conf=float(conf_min), imgsz=640, max_det=100, verbose=False
+        )[0]
+
+    h, w = img.shape[:2]
+    names = result.names
+    rows = []
+    for box in result.boxes:
+        class_id = int(box.cls[0])
+        if isinstance(names, dict):
+            label = names.get(class_id, str(class_id))
+        else:
+            label = names[class_id] if class_id < len(names) else str(class_id)
+        x1, y1, x2, y2 = [float(v) for v in box.xyxy[0]]
+        rows.append({
+            "label": str(label),
+            "conf": float(box.conf[0]),
+            "box": [x1 / w, y1 / h, x2 / w, y2 / h],
+        })
+    return sorted(rows, key=lambda item: item["conf"], reverse=True)
 
 def get_embedder(name):
     if _OVERRIDE["embedder"] is not None:
@@ -108,8 +310,10 @@ def overlap(a, b):
     iy = max(0, min(a[3], b[3]) - max(a[1], b[1]))
     return (ix * iy) / area(a)
 
-def detect(model, img, allowed=None, conf_min=0.45):
+def detect(model, img, allowed=None, conf_min=0.45, min_area=None, max_area=None):
     allowed = set(ALLOWED if allowed is None else allowed)
+    active_min_area = MIN_AREA if min_area is None else float(min_area)
+    active_max_area = MAX_AREA if max_area is None else float(max_area)
     h, w = img.shape[:2]
     res = model(img, verbose=False, conf=conf_min)[0]
     out = []
@@ -123,7 +327,7 @@ def detect(model, img, allowed=None, conf_min=0.45):
             continue
         x1, y1, x2, y2 = [float(v) for v in b.xyxy[0]]
         box = [x1 / w, y1 / h, x2 / w, y2 / h]
-        if label not in IGNORE and not (MIN_AREA <= area(box) <= MAX_AREA):
+        if label not in IGNORE and not (active_min_area <= area(box) <= active_max_area):
             continue
         out.append({"label": label, "conf": conf, "box": box})
     return out
@@ -208,8 +412,26 @@ def process(img, cfg=None):
     cfg = {**DEFAULT_CFG, **(cfg or {})}
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     q = quality(img)
-    with _INFER_LOCK:
-        all_dets = detect(get_detector(cfg["model"]), img, cfg["allowed"], cfg["conf_min"])
+    model_name = str(cfg["model"])
+    is_world_model = "world" in model_name.lower()
+    if is_world_model:
+        allowed_labels = list(dict.fromkeys(
+            str(label).strip() for label in (cfg.get("allowed") or ALLOWED) if str(label).strip()
+        ))
+        extra_labels = list(dict.fromkeys(
+            str(label).strip() for label in cfg.get("world_extra_prompts", WORLD_EXTRA_DEFAULTS) if str(label).strip()
+        ))
+        world_labels = list(dict.fromkeys(allowed_labels + extra_labels + ["person"]))
+        trackable_labels = list(dict.fromkeys(allowed_labels + extra_labels))
+        with _INFER_LOCK:
+            world_detector = get_detector(model_name, prompts=world_labels)
+            all_dets = detect(
+                world_detector, img, trackable_labels, cfg["conf_min"],
+                min_area=0.0005, max_area=0.85,
+            )
+    else:
+        with _INFER_LOCK:
+            all_dets = detect(get_detector(model_name), img, cfg["allowed"], cfg["conf_min"])
     persons = [d for d in all_dets if d["label"] in IGNORE]
     dets = [d for d in all_dets if d["label"] not in IGNORE]
 
